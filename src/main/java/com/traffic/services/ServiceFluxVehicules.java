@@ -4,18 +4,16 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.traffic.models.FluxVehiculesData;
 
-import javax.jws.WebMethod;
-import javax.jws.WebService;
-
-@WebService
 public class ServiceFluxVehicules {
 
-    @WebMethod
+    // Simule le flux de vehicules pour une route donnee
     public FluxVehiculesData getFluxVehicules(String route) {
-        if (route == null || route.isBlank()) {
+        // Si la route est vide ou nulle, on prend une valeur par defaut
+        if (route == null || route.trim().isEmpty()) {
             route = "RouteA";
         }
 
+        // Nombre aleatoire entre 0 et 150 inclus
         int nombreVehicules = ThreadLocalRandom.current().nextInt(0, 151);
         return new FluxVehiculesData(route, nombreVehicules);
     }
