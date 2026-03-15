@@ -29,7 +29,7 @@ public class ServiceBruitClient {
     public static void main(String[] args) {
         // Exemple simple d'utilisation du client
         ServiceBruitClient client = new ServiceBruitClient();
-        String reponse = client.envoyerZone("ZoneA");
+        String reponse = client.envoyerZone("Av_Oqba_Ibn_Naafi");
         System.out.println(reponse);
     }
 }

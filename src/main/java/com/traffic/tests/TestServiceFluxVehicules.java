@@ -8,8 +8,8 @@ public class TestServiceFluxVehicules {
         // Creation du service
         ServiceFluxVehicules service = new ServiceFluxVehicules();
 
-        // Appel de la methode avec la route "RouteA"
-        FluxVehiculesData resultat = service.getFluxVehicules("RouteA");
+        // Appel de la methode avec la route "Av_Fal_Ould_Oumeir"
+        FluxVehiculesData resultat = service.getFluxVehicules("Av_Fal_Ould_Oumeir");
 
         // Affichage du resultat dans la console
         System.out.println(resultat);

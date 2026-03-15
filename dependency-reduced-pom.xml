@@ -6,6 +6,7 @@
   <name>Traffic Management Application</name>
   <version>1.0.0</version>
   <build>
+    <finalName>traffic-application</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -13,18 +14,6 @@
         <configuration>
           <source>17</source>
           <target>17</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.3.0</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>com.traffic.Main</mainClass>
-            </manifest>
-          </archive>
-          <finalName>traffic-application</finalName>
         </configuration>
       </plugin>
       <plugin>
@@ -37,12 +26,23 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <shadedArtifactAttached>false</shadedArtifactAttached>
               <transformers>
                 <transformer>
                   <mainClass>com.traffic.Main</mainClass>
                 </transformer>
+                <transformer />
               </transformers>
-              <finalName>traffic-application-full</finalName>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
             </configuration>
           </execution>
         </executions>

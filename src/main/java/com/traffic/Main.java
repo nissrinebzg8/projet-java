@@ -83,11 +83,11 @@ public class Main {
         KafkaProducerService producer = new KafkaProducerService();
 
         TrafficData[] data = {
-            new TrafficData("RouteA",    120, 75,  60, false),
-            new TrafficData("RouteB",     45, 90,  55, false),
-            new TrafficData("CarrefourA", 30, 20,  40, false),
-            new TrafficData("ZoneA",      80, 60,  95, true),
-            new TrafficData("RouteA",    150, 85,  70, false),
+            new TrafficData("Av_Fal_Ould_Oumeir",    120, 75,  60, false),
+            new TrafficData("Av_Ibn_Sina",     45, 90,  55, false),
+            new TrafficData("Carrefour_Arribat", 30, 20,  40, false),
+            new TrafficData("Av_Oqba_Ibn_Naafi",      80, 60,  95, true),
+            new TrafficData("Av_Fal_Ould_Oumeir",    150, 85,  70, false),
         };
 
         for (TrafficData d : data) {

@@ -11,7 +11,7 @@ public class TestServiceCamera {
             CameraServiceImpl cameraService = new CameraServiceImpl();
 
             // Test de detection sur la zone CarrefourA
-            boolean accident = cameraService.accidentDetecte("CarrefourA");
+            boolean accident = cameraService.accidentDetecte("Carrefour_Arribat");
 
             // Affiche le resultat dans la console
             System.out.println("Accident detecte sur CarrefourA : " + accident);

@@ -7,19 +7,7 @@ import java.net.InetSocketAddress;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
-/**
- * TrafficHttpServer
- * ─────────────────────────────────────────────────────────────────
- * Serveur HTTP léger (intégré à Java, sans dépendance externe)
- * qui expose les données Kafka en JSON pour le dashboard React.
- *
- * Endpoints disponibles :
- *   GET http://localhost:8080/api/traffic   → dernières données par zone
- *   GET http://localhost:8080/api/history   → historique des 50 derniers messages
- *   GET http://localhost:8080/health        → statut du serveur
- *
- * Lancement : java -jar traffic-application-full.jar server
- */
+
 public class TrafficHttpServer {
 
     private static final int PORT = 8080;
@@ -59,8 +47,6 @@ public class TrafficHttpServer {
         server.setExecutor(null); // thread pool par défaut
     }
 
-    // ─── Méthodes publiques ──────────────────────────────────────────────────
-
     public void start() {
         server.start();
         System.out.println("[HTTP] Serveur démarré sur http://localhost:" + PORT);
@@ -75,7 +61,6 @@ public class TrafficHttpServer {
         System.out.println("[HTTP] Serveur arrêté.");
     }
 
-    // ─── Helpers HTTP ────────────────────────────────────────────────────────
 
     private void sendJson(HttpExchange exchange, int code, String json) throws IOException {
         // Headers CORS pour autoriser le dashboard à faire des requêtes

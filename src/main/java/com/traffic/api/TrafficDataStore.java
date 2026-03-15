@@ -8,45 +8,26 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.traffic.models.TrafficData;
 
-/**
- * TrafficDataStore
- * ─────────────────────────────────────────────────────────────────
- * Stockage en mémoire partagé entre :
- *   - KafkaConsumerService  (écrit les données reçues)
- *   - TrafficHttpServer     (lit les données pour le dashboard)
- *
- * Thread-safe via ConcurrentHashMap et CopyOnWriteArrayList.
- */
 public class TrafficDataStore {
 
-    // ─── Singleton ───────────────────────────────────────────────────────────
     private static final TrafficDataStore INSTANCE = new TrafficDataStore();
     public static TrafficDataStore getInstance() { return INSTANCE; }
     private TrafficDataStore() {}
 
-    // ─── Dernières données par zone ──────────────────────────────────────────
-    // Clé = zone (ex: "RouteA"), Valeur = dernière TrafficData reçue
     private final Map<String, TrafficData> latestByZone = new ConcurrentHashMap<>();
 
-    // ─── Historique des 50 derniers messages ─────────────────────────────────
     private final CopyOnWriteArrayList<TrafficData> history = new CopyOnWriteArrayList<>();
     private static final int MAX_HISTORY = 50;
 
-    // ─── Alertes actives ─────────────────────────────────────────────────────
     private final CopyOnWriteArrayList<String> alerts = new CopyOnWriteArrayList<>();
     private static final int MAX_ALERTS = 20;
 
-    // ─── Seuils ──────────────────────────────────────────────────────────────
+
     private static final int SEUIL_VEHICULES = 100;
     private static final int SEUIL_POLLUTION = 80;
     private static final int SEUIL_BRUIT     = 85;
 
-    // ─── Méthodes d'écriture (appelées par le Consumer) ─────────────────────
-
-    /**
-     * Enregistre une nouvelle donnée de trafic.
-     * Appelé par KafkaConsumerService à chaque message reçu.
-     */
+    
     public void update(TrafficData data) {
         if (data == null || data.getZone() == null) return;
 
@@ -59,15 +40,11 @@ public class TrafficDataStore {
             history.remove(0);
         }
 
-        // Générer les alertes
+        
         generateAlerts(data);
     }
 
-    // ─── Méthodes de lecture (appelées par le serveur HTTP) ──────────────────
-
-    /**
-     * Retourne les dernières données de toutes les zones en JSON.
-     */
+    
     public String getLatestJson() {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"zones\":[");
@@ -89,9 +66,7 @@ public class TrafficDataStore {
         return sb.toString();
     }
 
-    /**
-     * Retourne l'historique des données en JSON.
-     */
+    
     public String getHistoryJson() {
         StringBuilder sb = new StringBuilder();
         sb.append("[");
@@ -104,8 +79,7 @@ public class TrafficDataStore {
         return sb.toString();
     }
 
-    // ─── Calculs agrégés ─────────────────────────────────────────────────────
-
+    
     private int getTotalVehicles() {
         return latestByZone.values().stream()
                 .mapToInt(TrafficData::getVehicles).sum();
@@ -138,8 +112,7 @@ public class TrafficDataStore {
         return sb.toString();
     }
 
-    // ─── Génération des alertes ───────────────────────────────────────────────
-
+    
     private void generateAlerts(TrafficData data) {
         String zone = data.getZone();
 
@@ -163,8 +136,6 @@ public class TrafficDataStore {
             alerts.remove(alerts.size() - 1);
         }
     }
-
-    // ─── Sérialisation JSON manuelle ─────────────────────────────────────────
 
     private String toJson(TrafficData d) {
         return String.format(

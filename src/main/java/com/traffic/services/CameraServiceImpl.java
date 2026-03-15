@@ -16,7 +16,7 @@ public class CameraServiceImpl extends UnicastRemoteObject implements CameraServ
     public boolean accidentDetecte(String zone) throws RemoteException {
         // Si la zone est nulle, on prend une valeur par defaut
         if (zone == null) {
-            zone = "CarrefourA";
+            zone = "Carrefour_Arribat";
         }
 
         // Simulation: retourne aleatoirement true ou false

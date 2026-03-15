@@ -18,8 +18,7 @@ public class KafkaConsumerService {
 
     private static final String BOOTSTRAP_SERVERS = "localhost:9092";
     private static final String TOPIC_NAME        = "traffic-data";
-    private static final String GROUP_ID          = "traffic-group";
-
+    private static final String GROUP_ID = "traffic-group-v2";
     private static final int SEUIL_VEHICLES  = 100;
     private static final int SEUIL_POLLUTION = 80;
     private static final int SEUIL_NOISE     = 85;
@@ -34,7 +33,7 @@ public class KafkaConsumerService {
         props.put(ConsumerConfig.GROUP_ID_CONFIG,                 GROUP_ID);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,   StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,        "latest");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,       "true");
 
         this.consumer  = new KafkaConsumer<>(props);

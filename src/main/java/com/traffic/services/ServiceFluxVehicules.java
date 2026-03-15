@@ -10,7 +10,7 @@ public class ServiceFluxVehicules {
     public FluxVehiculesData getFluxVehicules(String route) {
         // Si la route est vide ou nulle, on prend une valeur par defaut
         if (route == null || route.trim().isEmpty()) {
-            route = "RouteA";
+            route = "Av_Fal_Ould_Oumeir";
         }
 
         // Nombre aleatoire entre 0 et 150 inclus

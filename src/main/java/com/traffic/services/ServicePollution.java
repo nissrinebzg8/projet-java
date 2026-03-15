@@ -17,7 +17,7 @@ public class ServicePollution {
     @GET
     public PollutionData getPollution(@QueryParam("zone") String zone) {
         if (zone == null || zone.isBlank()) {
-            zone = "RouteA";
+            zone = "Av_Fal_Ould_Oumeir";
         }
 
         int pollution = ThreadLocalRandom.current().nextInt(30, 101);

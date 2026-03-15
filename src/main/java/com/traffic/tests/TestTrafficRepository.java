@@ -8,10 +8,10 @@ public class TestTrafficRepository {
         TrafficRepository repository = new TrafficRepository();
 
         // Insertion des donnees de test
-        repository.insertTrafic("RouteA", 120);
-        repository.insertPollution("ZoneA", 78);
-        repository.insertAccident("CarrefourA", true);
-        repository.insertBruit("ZoneA", 85);
+        repository.insertTrafic("Av_Fal_Ould_Oumeir", 120);
+        repository.insertPollution("Av_Oqba_Ibn_Naafi", 78);
+        repository.insertAccident("Carrefour_Arribat", true);
+        repository.insertBruit("Av_Oqba_Ibn_Naafi", 85);
         repository.insertAlerte("Congestion", "Embouteillage détecté sur RouteA");
 
         // Message final

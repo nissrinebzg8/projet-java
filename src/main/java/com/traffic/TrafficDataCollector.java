@@ -12,7 +12,7 @@ import com.traffic.services.ServicePollution;
 public class TrafficDataCollector {
 
     // ─── Zones à surveiller ──────────────────────────────────────────────────
-    private static final String[] ZONES  = {"RouteA", "RouteB", "CarrefourA", "ZoneA"};
+    private static final String[] ZONES  = {"Av_Fal_Ould_Oumeir", "Av_Ibn_Sina", "Carrefour_Arribat", "Av_Oqba_Ibn_Naafi"};
 
     // ─── Seuils d'alerte ─────────────────────────────────────────────────────
     private static final int SEUIL_VEHICULES = 100;

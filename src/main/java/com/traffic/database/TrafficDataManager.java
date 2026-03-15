@@ -57,13 +57,13 @@ public class TrafficDataManager {
 
             // 1) Flux véhicules
             ServiceFluxVehicules serviceFlux = new ServiceFluxVehicules();
-            FluxVehiculesData fluxData = serviceFlux.getFluxVehicules("RouteA");
+            FluxVehiculesData fluxData = serviceFlux.getFluxVehicules("Av_Fal_Ould_Oumeir");
             repository.insertTrafic(fluxData.getRoute(), fluxData.getNombreVehicules());
             sendToKafka(fluxData.getRoute(), fluxData.getNombreVehicules(), 0, 0, false); // ✅ KAFKA
 
             // 2) Pollution simulée
             PollutionData pollutionData = new PollutionData(
-                "ZoneA",
+                "Av_Oqba_Ibn_Naafi",
                 ThreadLocalRandom.current().nextInt(30, 101)
             );
             repository.insertPollution(pollutionData.getZone(), pollutionData.getPollution());
@@ -71,14 +71,14 @@ public class TrafficDataManager {
 
             // 3) Accident
             CameraServiceImpl cameraService = new CameraServiceImpl();
-            boolean accident = cameraService.accidentDetecte("CarrefourA");
-            repository.insertAccident("CarrefourA", accident);
-            if (accident) sendToKafka("CarrefourA", 0, 0, 0, true); // ✅ KAFKA (si accident seulement)
+            boolean accident = cameraService.accidentDetecte("Carrefour_Arribat");
+            repository.insertAccident("Carrefour_Arribat", accident);
+            if (accident) sendToKafka("Carrefour_Arribat", 0, 0, 0, true); // ✅ KAFKA (si accident seulement)
 
             // 4) Bruit simulé
             int bruit = ThreadLocalRandom.current().nextInt(40, 101);
-            repository.insertBruit("ZoneA", bruit);
-            sendToKafka("ZoneA", 0, 0, bruit, false); // ✅ KAFKA
+            repository.insertBruit("Av_Oqba_Ibn_Naafi", bruit);
+            sendToKafka("Av_Oqba_Ibn_Naafi", 0, 0, bruit, false); // ✅ KAFKA
 
             System.out.println("Collecte et stockage terminés.");
 

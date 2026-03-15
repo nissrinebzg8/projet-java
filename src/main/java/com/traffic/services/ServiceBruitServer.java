@@ -37,7 +37,7 @@ public class ServiceBruitServer {
             // Le client envoie une zone (ex: ZoneA)
             String zone = reader.readLine();
             if (zone == null || zone.trim().isEmpty()) {
-                zone = "ZoneA";
+                zone = "Av_Oqba_Ibn_Naafi";
             }
 
             // Simulation du niveau de bruit entre 40 et 100 dB

@@ -7,8 +7,8 @@ public class TestServiceBruit {
         // Creation du client TCP
         ServiceBruitClient client = new ServiceBruitClient();
 
-        // Envoi de la zone "ZoneA" au serveur
-        String reponse = client.envoyerZone("ZoneA");
+        // Envoi de la zone "Av_Oqba_Ibn_Naafi" au serveur
+        String reponse = client.envoyerZone("Av_Oqba_Ibn_Naafi");
 
         // Affichage de la reponse recue
         System.out.println("Reponse serveur: " + reponse);
