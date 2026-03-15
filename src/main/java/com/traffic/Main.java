@@ -1,21 +1,30 @@
 package com.traffic;
 
+import com.traffic.api.TrafficHttpServer;
 import com.traffic.kafka.KafkaConsumerService;
 import com.traffic.kafka.KafkaProducerService;
 import com.traffic.models.TrafficData;
 import com.traffic.services.ServiceBruitServer;
+
 /**
- * Main.java — version finale
+ * Main.java — version finale complète
  * ─────────────────────────────────────────────────────────────────
- * Modes disponibles :
- *   producer   → simule l'envoi de données vers Kafka
- *   consumer   → lit et analyse les données depuis Kafka
- *   collector  → collecte depuis les vrais services distribués → Kafka  ✅ NOUVEAU
- *   both       → producer + consumer simultanément
+ * Modes :
+ *   producer     → simule l'envoi de données
+ *   consumer     → lit Kafka + alimente le DataStore
+ *   collector    → collecte depuis les vrais services distribués
+ *   server       → Consumer + Serveur HTTP (dashboard)       ✅ NOUVEAU
+ *   bruitserver  → Lance le serveur TCP bruit (port 5000)
+ *   both         → producer + consumer
+ *
+ * Usage recommandé pour la démo complète :
+ *   Terminal 1 : java -jar ... bruitserver
+ *   Terminal 2 : java -jar ... server       (consumer + HTTP)
+ *   Terminal 3 : java -jar ... collector    (envoi données réelles)
  */
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Exception {
 
         String mode = (args.length > 0) ? args[0].toLowerCase() : "both";
 
@@ -25,102 +34,106 @@ public class Main {
         System.out.println("╚══════════════════════════════════════════════╝\n");
 
         switch (mode) {
-            case "producer"  -> runProducer();
-            case "consumer"  -> runConsumer();
-            case "collector" -> runCollector();   // ✅ NOUVEAU
-            default          -> runBoth();
+            case "producer"    -> runProducer();
+            case "consumer"    -> runConsumer();
+            case "collector"   -> runCollector();
+            case "server"      -> runServer();        // ✅ NOUVEAU
             case "bruitserver" -> runBruitServer();
+            default            -> runBoth();
         }
     }
 
-    private static void runBruitServer() {
-        System.out.println("▶ Démarrage du ServiceBruitServer (TCP port 5000)...");
-        ServiceBruitServer.main(new String[]{});        
+    // ─── MODE SERVER : Consumer Kafka + Serveur HTTP pour le dashboard ────────
+    /**
+     * Lance simultanément :
+     *   - Le Consumer Kafka (lit les messages et alimente le DataStore)
+     *   - Le serveur HTTP sur port 8080 (expose les données en JSON)
+     *
+     * Le dashboard React fait des requêtes GET /api/traffic toutes les 5s.
+     */
+    private static void runServer() throws Exception {
+        System.out.println("▶ Démarrage du Consumer + Serveur HTTP...\n");
+
+        // 1. Démarrer le serveur HTTP
+        TrafficHttpServer httpServer = new TrafficHttpServer();
+        httpServer.start();
+
+        // 2. Démarrer le Consumer Kafka dans un thread séparé
+        KafkaConsumerService consumer = new KafkaConsumerService();
+        Thread consumerThread = new Thread(consumer::start, "KafkaConsumer");
+        consumerThread.setDaemon(false);
+        consumerThread.start();
+
+        // Arrêt propre avec Ctrl+C
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("\n[MAIN] Arrêt...");
+            consumer.stop();
+            httpServer.stop();
+        }));
+
+        System.out.println("\n[SERVER] Tout est prêt !");
+        System.out.println("[SERVER] Dashboard API : http://localhost:8080/api/traffic");
+        System.out.println("[SERVER] Ouvrez dashboard.html dans votre navigateur.");
+        System.out.println("[SERVER] Ctrl+C pour arrêter.\n");
     }
-    // ─── MODE PRODUCER (simulation) ──────────────────────────────────────────
+
+    // ─── MODE PRODUCER ────────────────────────────────────────────────────────
     private static void runProducer() throws InterruptedException {
         System.out.println("▶ Démarrage du Producer (simulation)...\n");
         KafkaProducerService producer = new KafkaProducerService();
 
-        TrafficData[] capteurData = {
-            new TrafficData("A1", 120, 75, 60, false),   // CONGESTION
-            new TrafficData("B2", 45,  90, 55, false),   // POLLUTION
-            new TrafficData("C3", 30,  20, 40, false),   // NORMALE
-            new TrafficData("D4", 80,  60, 95, true),    // ACCIDENT + BRUIT
-            new TrafficData("A1", 150, 85, 70, false),   // CONGESTION + POLLUTION
+        TrafficData[] data = {
+            new TrafficData("RouteA",    120, 75,  60, false),
+            new TrafficData("RouteB",     45, 90,  55, false),
+            new TrafficData("CarrefourA", 30, 20,  40, false),
+            new TrafficData("ZoneA",      80, 60,  95, true),
+            new TrafficData("RouteA",    150, 85,  70, false),
         };
 
-        System.out.printf("📤 Envoi de %d messages vers le topic 'traffic-data'...%n%n",
-                capteurData.length);
-
-        for (TrafficData data : capteurData) {
-            producer.send(data);
+        for (TrafficData d : data) {
+            producer.send(d);
             Thread.sleep(1000);
         }
-
         producer.close();
-        System.out.println("\n✅ Tous les messages ont été envoyés.");
+        System.out.println("\n✅ Messages envoyés.");
     }
 
     // ─── MODE CONSUMER ───────────────────────────────────────────────────────
     private static void runConsumer() {
         System.out.println("▶ Démarrage du Consumer...\n");
         KafkaConsumerService consumer = new KafkaConsumerService();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("\n[MAIN] Arrêt du consumer...");
-            consumer.stop();
-        }));
-
+        Runtime.getRuntime().addShutdownHook(new Thread(consumer::stop));
         consumer.start();
     }
 
-    // ─── MODE COLLECTOR — vrais services distribués ──────────────────────────
-    /**
-     * ✅ NOUVEAU MODE
-     * Collecte depuis JAX-WS, JAX-RS, RMI, Socket TCP
-     * et envoie vers Kafka en boucle toutes les 30 secondes.
-     *
-     * Lancement : java -jar target\traffic-application-full.jar collector
-     */
+    // ─── MODE COLLECTOR ──────────────────────────────────────────────────────
     private static void runCollector() throws InterruptedException {
         System.out.println("▶ Démarrage du Collector (services réels)...\n");
-
         KafkaProducerService producer = new KafkaProducerService();
         TrafficDataCollector collector = new TrafficDataCollector(producer);
-
-        // Arrêt propre avec Ctrl+C
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("\n[MAIN] Arrêt du collector...");
-            producer.close();
-        }));
-
-        // Boucle de collecte toutes les 30 secondes
-        int intervalle = 30_000; // ms
-        System.out.printf("[COLLECTOR] Collecte toutes les %d secondes. (Ctrl+C pour arrêter)%n%n",
-                intervalle / 1000);
+        Runtime.getRuntime().addShutdownHook(new Thread(producer::close));
 
         while (true) {
             collector.collectAll();
-            System.out.printf("[COLLECTOR] ⏳ Prochaine collecte dans %d secondes...%n",
-                    intervalle / 1000);
-            Thread.sleep(intervalle);
+            System.out.println("[COLLECTOR] Prochaine collecte dans 30 secondes...");
+            Thread.sleep(30_000);
         }
+    }
+
+    // ─── MODE BRUITSERVER ────────────────────────────────────────────────────
+    private static void runBruitServer() {
+        System.out.println("▶ Démarrage ServiceBruitServer (TCP port 5000)...");
+        ServiceBruitServer.main(new String[]{});
     }
 
     // ─── MODE BOTH ───────────────────────────────────────────────────────────
     private static void runBoth() throws InterruptedException {
-        System.out.println("▶ Démarrage combiné (Producer + Consumer)\n");
-
         KafkaConsumerService consumer = new KafkaConsumerService();
-        Thread consumerThread = new Thread(consumer::start, "ConsumerThread");
-        consumerThread.setDaemon(true);
-        consumerThread.start();
-
+        Thread t = new Thread(consumer::start);
+        t.setDaemon(true);
+        t.start();
         Thread.sleep(2000);
         runProducer();
-
-        System.out.println("\n[MAIN] Consumer en cours... (Ctrl+C pour arrêter)");
-        consumerThread.join();
+        t.join();
     }
 }

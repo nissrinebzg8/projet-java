@@ -19,11 +19,10 @@ public class TrafficDataManager {
     private static final String TOPIC   = "traffic-data";
     private static final String BROKERS = "localhost:9092";
 
-    // ✅ AJOUT 2 : Producer Kafka
     private final KafkaProducer<String, String> producer;
 
     public void save(TrafficData data) {
-    // ✅ Ignorer les données vides
+
     if (data.getZone() == null || data.getZone().isEmpty()) {
         System.out.println("[DB] ⚠️ Données ignorées (zone null)");
         return;
@@ -31,7 +30,7 @@ public class TrafficDataManager {
     sendToKafka(data.getZone(), data.getVehicles(),
                 data.getPollution(), data.getNoise(), data.isAccident());
     }
-    // ✅ AJOUT 3 : Constructeur avec initialisation Kafka
+    
     public TrafficDataManager() {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,      BROKERS);
@@ -41,7 +40,7 @@ public class TrafficDataManager {
         this.producer = new KafkaProducer<>(props);
     }
 
-    // ✅ AJOUT 4 : Méthode utilitaire d'envoi Kafka
+    
     private void sendToKafka(String zone, int vehicles, int pollution, int noise, boolean accident) {
         String message = String.format(
             "zone=%s,vehicles=%d,pollution=%d,noise=%d,accident=%b",
@@ -51,7 +50,7 @@ public class TrafficDataManager {
         System.out.println("[KAFKA] Envoyé → " + message);
     }
 
-    // ─── Votre méthode originale — seules les lignes KAFKA sont nouvelles ────
+    
     public void collectAndStoreData() {
         try {
             TrafficRepository repository = new TrafficRepository();
@@ -88,7 +87,6 @@ public class TrafficDataManager {
         }
     }
 
-    // ✅ AJOUT 5 : Fermeture propre du producer
     public void close() {
         producer.flush();
         producer.close();

@@ -1,17 +1,13 @@
 package com.traffic.models;
 
-/**
- * Modèle représentant les données d'un capteur de trafic urbain.
- * Format du message Kafka : zone=A1,vehicles=120,pollution=75,noise=60,accident=false
- */
 public class TrafficData {
 
-    private String zone;        // Ex: A1, B2, C3
-    private int vehicles;       // Nombre de véhicules/min
-    private int pollution;      // Niveau de pollution (µg/m³)
-    private int noise;          // Niveau de bruit (dB)
-    private boolean accident;   // Accident détecté
-    private long timestamp;     // Horodatage Unix
+    private String zone;        
+    private int vehicles;       
+    private int pollution;      
+    private int noise;          
+    private boolean accident;   
+    private long timestamp;     
 
     public TrafficData() {
         this.timestamp = System.currentTimeMillis();
@@ -26,18 +22,13 @@ public class TrafficData {
         this.timestamp = System.currentTimeMillis();
     }
 
-    /**
-     * Sérialise l'objet en message Kafka (format clé=valeur)
-     * Exemple : zone=A1,vehicles=120,pollution=75,noise=60,accident=false
-     */
+    
     public String toKafkaMessage() {
         return String.format("zone=%s,vehicles=%d,pollution=%d,noise=%d,accident=%b",
                 zone, vehicles, pollution, noise, accident);
     }
 
-    /**
-     * Désérialise un message Kafka en objet TrafficData
-     */
+    
     public static TrafficData fromKafkaMessage(String message) {
         TrafficData data = new TrafficData();
         String[] parts = message.split(",");
@@ -56,8 +47,7 @@ public class TrafficData {
         return data;
     }
 
-    // ─── Getters & Setters ───────────────────────────────────────────────────
-
+    
     public String  getZone()      { return zone; }
     public int     getVehicles()  { return vehicles; }
     public int     getPollution() { return pollution; }

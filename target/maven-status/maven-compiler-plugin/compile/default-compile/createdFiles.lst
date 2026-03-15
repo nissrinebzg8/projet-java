@@ -1,5 +1,7 @@
+com\traffic\api\TrafficDataStore.class
 com\traffic\database\TrafficRepository.class
 com\traffic\services\CameraServiceImpl.class
+com\traffic\api\TrafficHttpServer.class
 com\traffic\database\TrafficDataManager.class
 com\traffic\tests\TestTrafficDataManager.class
 com\traffic\tests\TestServiceCamera.class

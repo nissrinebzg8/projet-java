@@ -9,18 +9,6 @@ import com.traffic.services.ServiceBruitClient;
 import com.traffic.services.ServiceFluxVehicules;
 import com.traffic.services.ServicePollution;
 
-/**
- * TrafficDataCollector
- * ─────────────────────────────────────────────────────────────────
- * Orchestre la collecte depuis tous les services distribués
- * et envoie les données vers Kafka topic "traffic-data".
- *
- * Services connectés :
- *   ✅ ServiceFluxVehicules  → JAX-WS  (simulation)
- *   ✅ ServicePollution      → JAX-RS  (simulation)
- *   ✅ CameraServiceImpl     → RMI
- *   ✅ ServiceBruitClient    → Socket TCP (localhost:5000)
- */
 public class TrafficDataCollector {
 
     // ─── Zones à surveiller ──────────────────────────────────────────────────
@@ -55,12 +43,6 @@ public class TrafficDataCollector {
         }
     }
 
-    // ─── Collecte principale ─────────────────────────────────────────────────
-
-    /**
-     * Collecte les données de tous les services et les envoie vers Kafka.
-     * À appeler périodiquement (ex: toutes les 30 secondes).
-     */
     public void collectAll() {
         System.out.println("\n[COLLECTOR] ▶ Début de la collecte sur toutes les zones...");
 
@@ -71,9 +53,6 @@ public class TrafficDataCollector {
         System.out.println("[COLLECTOR] ✅ Collecte terminée.\n");
     }
 
-    /**
-     * Collecte et envoie les données pour une zone spécifique.
-     */
     public void collectZone(String zone) {
         System.out.printf("%n[COLLECTOR] 📍 Zone : %s%n", zone);
 
@@ -90,11 +69,7 @@ public class TrafficDataCollector {
         afficherAlertes(zone, vehicles, pollution, noise, accident);
     }
 
-    // ─── Collecteurs par service ─────────────────────────────────────────────
 
-    /**
-     * 1) JAX-WS — Flux de véhicules
-     */
     private int collectFluxVehicules(String zone) {
         try {
             FluxVehiculesData data = serviceFlux.getFluxVehicules(zone);
@@ -102,14 +77,12 @@ public class TrafficDataCollector {
             System.out.printf("[JAX-WS]  FluxVehicules → %s : %d veh/min%n", zone, vehicles);
             return vehicles;
         } catch (Exception e) {
-            System.err.println("[JAX-WS]  ❌ Erreur FluxVehicules : " + e.getMessage());
+            System.err.println("[JAX-WS]  Erreur FluxVehicules : " + e.getMessage());
             return 0;
         }
     }
 
-    /**
-     * 2) JAX-RS — Niveau de pollution
-     */
+
     private int collectPollution(String zone) {
         try {
             PollutionData data = servicePollution.getPollution(zone);
@@ -117,14 +90,12 @@ public class TrafficDataCollector {
             System.out.printf("[JAX-RS]  Pollution     → %s : %d µg/m³%n", zone, pollution);
             return pollution;
         } catch (Exception e) {
-            System.err.println("[JAX-RS]  ❌ Erreur Pollution : " + e.getMessage());
+            System.err.println("[JAX-RS]   Erreur Pollution : " + e.getMessage());
             return 0;
         }
     }
 
-    /**
-     * 3) Socket TCP — Niveau de bruit (ServiceBruitClient → ServiceBruitServer:5000)
-     */
+   
     private int collectBruit(String zone) {
         try {
             String reponse = serviceBruit.envoyerZone(zone);
@@ -141,14 +112,12 @@ public class TrafficDataCollector {
             return noise;
 
         } catch (Exception e) {
-            System.err.println("[TCP]     ❌ Erreur Bruit : " + e.getMessage());
+            System.err.println("[TCP]    Erreur Bruit : " + e.getMessage());
             return 0;
         }
     }
 
-    /**
-     * 4) RMI — Détection d'accident (CameraServiceImpl)
-     */
+
     private boolean collectAccident(String zone) {
         if (serviceCamera == null) {
             System.out.printf("[RMI]     Camera (indisponible) → %s%n", zone);
@@ -159,50 +128,41 @@ public class TrafficDataCollector {
             System.out.printf("[RMI]     Camera         → %s : accident=%b%n", zone, accident);
             return accident;
         } catch (Exception e) {
-            System.err.println("[RMI]     ❌ Erreur Camera : " + e.getMessage());
+            System.err.println("[RMI]    Erreur Camera : " + e.getMessage());
             return false;
         }
     }
 
-    // ─── Analyse et alertes ──────────────────────────────────────────────────
-
+    
     private void afficherAlertes(String zone, int vehicles, int pollution, int noise, boolean accident) {
         boolean alerte = false;
 
         if (vehicles > SEUIL_VEHICULES) {
-            System.out.printf("[ALERTE] 🚦 CONGESTION %s (%d veh/min) → Allonger le feu vert%n",
+            System.out.printf("[ALERTE]  CONGESTION %s (%d veh/min) → Allonger le feu vert%n",
                     zone, vehicles);
             alerte = true;
         }
         if (pollution > SEUIL_POLLUTION) {
-            System.out.printf("[ALERTE] 🌫️  POLLUTION  %s (%d µg/m³)  → Réduire le trafic%n",
+            System.out.printf("[ALERTE]  POLLUTION  %s (%d µg/m³)  → Réduire le trafic%n",
                     zone, pollution);
             alerte = true;
         }
         if (noise > SEUIL_BRUIT) {
-            System.out.printf("[ALERTE] 🔊 BRUIT      %s (%d dB)     → Alerte sonore%n",
+            System.out.printf("[ALERTE]  BRUIT      %s (%d dB)     → Alerte sonore%n",
                     zone, noise);
             alerte = true;
         }
         if (accident) {
-            System.out.printf("[ALERTE] 🚨 ACCIDENT   %s             → Activer déviation%n", zone);
+            System.out.printf("[ALERTE]  ACCIDENT   %s             → Activer déviation%n", zone);
             alerte = true;
         }
         if (!alerte) {
-            System.out.printf("[OK]     ✅ %s — Situation normale%n", zone);
+            System.out.printf("[OK]      %s — Situation normale%n", zone);
         }
     }
 
-    // ─── Utilitaires ─────────────────────────────────────────────────────────
-
-    /**
-     * Parse la réponse du serveur TCP.
-     * Supporte "75", "noise=75", "bruit=75", "ZoneA:75"
-     */
     private int parseNoise(String reponse) {
         try {
-        // Format reçu : "Zone: ZoneA, Bruit: 75 dB"
-        // On extrait le nombre avant " dB"
             reponse = reponse.trim();
             int idx = reponse.lastIndexOf("Bruit: ");
             if (idx != -1) {
@@ -210,7 +170,7 @@ public class TrafficDataCollector {
                 partie = partie.replace(" dB", "").trim();
                 return Integer.parseInt(partie);
             }
-            return 50; // valeur par défaut
+            return 50; 
         } catch (NumberFormatException e) {
             return 50;
         }

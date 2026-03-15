@@ -2,6 +2,7 @@ C:\projet-java\src\main\java\com\traffic\analysis\AnalyseSeuils.java
 C:\projet-java\src\main\java\com\traffic\analysis\RecommendationService.java
 C:\projet-java\src\main\java\com\traffic\tests\TestTrafficDataManager.java
 C:\projet-java\src\main\java\com\traffic\tests\TestServiceFluxVehicules.java
+C:\projet-java\src\main\java\com\traffic\api\TrafficDataStore.java
 C:\projet-java\src\main\java\com\traffic\services\CameraServiceImpl.java
 C:\projet-java\src\main\java\com\traffic\services\ServicePollution.java
 C:\projet-java\src\main\java\com\traffic\tests\TestServiceBruit.java
@@ -23,4 +24,5 @@ C:\projet-java\src\main\java\com\traffic\models\TrafficData.java
 C:\projet-java\src\main\java\com\traffic\TrafficDataCollector.java
 C:\projet-java\src\main\java\com\traffic\database\TrafficRepository.java
 C:\projet-java\src\main\java\com\traffic\services\ServiceBruitServer.java
+C:\projet-java\src\main\java\com\traffic\api\TrafficHttpServer.java
 C:\projet-java\src\main\java\com\traffic\tests\TestServiceCamera.java

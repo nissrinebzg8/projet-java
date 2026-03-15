@@ -51,7 +51,6 @@ public class TrafficRepository {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            // Gestion simple des erreurs SQL
             System.out.println("Erreur lors de l'insertion: " + e.getMessage());
         }
     }

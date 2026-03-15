@@ -11,10 +11,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import com.traffic.models.TrafficData;
 
-/**
- * KafkaProducerService — version mise à jour
- * Ajoute la méthode sendRaw() utilisée par TrafficDataManager.
- */
 public class KafkaProducerService {
 
     private static final String BOOTSTRAP_SERVERS = "localhost:9092";
@@ -39,9 +35,6 @@ public class KafkaProducerService {
     }
 
     /**
-     * ✅ Méthode utilisée par TrafficDataManager
-     * Envoie un message brut (String) vers n'importe quel topic.
-     *
      * @param topic   Nom du topic Kafka (ex: "traffic-data")
      * @param key     Clé du message (ex: zone "A1")
      * @param message Message formaté (ex: "zone=A1,vehicles=120,...")
@@ -50,10 +43,10 @@ public class KafkaProducerService {
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, message);
         try {
             RecordMetadata metadata = producer.send(record).get();
-            System.out.printf("[KAFKA] ✅ Envoyé → topic=%s | key=%s | offset=%d%n",
+            System.out.printf("[KAFKA] Envoyé → topic=%s | key=%s | offset=%d%n",
                     topic, key, metadata.offset());
         } catch (InterruptedException | ExecutionException e) {
-            System.err.println("[KAFKA] ❌ Erreur envoi : " + e.getMessage());
+            System.err.println("[KAFKA] Erreur envoi : " + e.getMessage());
             Thread.currentThread().interrupt();
         }
     }
