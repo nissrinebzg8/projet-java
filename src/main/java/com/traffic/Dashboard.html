@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trafic Urbain — Dashboard</title>
+<title>Trafic Urbain - Dashboard</title>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -15,15 +15,13 @@
   :root {
     --bg1: #0f1117; --bg2: #1a1d27; --bg3: #22253a;
     --border: rgba(255,255,255,0.08);
-    --green: #1D9E75; --green-light: #E1F5EE;
-    --amber: #EF9F27; --red: #E24B4A;
+    --green: #1D9E75; --amber: #EF9F27; --red: #E24B4A;
     --text: #e8e8e8; --text2: #8b8fa8; --text3: #5a5e72;
   }
   .app { padding: 20px; max-width: 1400px; margin: 0 auto; }
   .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 0.5px solid var(--border); }
   .title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
   .title span { color: var(--green); }
-  .subtitle { font-size: 12px; color: var(--text2); margin-top: 2px; font-family: 'DM Mono', monospace; }
   .badge-live { display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--green); background: rgba(29,158,117,0.12); padding: 5px 12px; border-radius: 20px; border: 0.5px solid rgba(29,158,117,0.3); }
   .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
@@ -42,7 +40,7 @@
   .card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: 12px; padding: 18px 20px; }
   .card-title { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
   .zone-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .zone-name { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); width: 90px; flex-shrink: 0; }
+  .zone-name { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); width: 130px; flex-shrink: 0; }
   .bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
   .bar { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
   .bar-ok { background: var(--green); }
@@ -64,12 +62,15 @@
   .feu-orange { background: var(--amber); box-shadow: 0 0 8px rgba(239,159,39,0.4); }
   .feu-status { font-size: 10px; color: var(--text3); }
   .error-banner { background: rgba(226,75,74,0.1); border: 0.5px solid rgba(226,75,74,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: #f09595; display: flex; align-items: center; gap: 10px; }
-  .connecting { color: var(--amber); font-size: 13px; text-align: center; padding: 40px; }
-  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; gap: 8px; }
   .stat-row:last-child { border-bottom: none; }
   .stat-label { color: var(--text2); }
   .stat-val { font-family: 'DM Mono', monospace; font-weight: 500; }
   .api-url { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); margin-top: 4px; }
+  @media (max-width: 960px) {
+    .metrics-grid, .main-grid, .bottom-grid, .feux-grid { grid-template-columns: 1fr; }
+    .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
+  }
 </style>
 </head>
 <body>
@@ -77,14 +78,14 @@
 
 <script type="text/babel">
 const { useState, useEffect, useRef } = React;
-const API = 'http://localhost:8080';
+const API = window.location.origin.startsWith('http') ? window.location.origin : 'http://localhost:8080';
 
 function useClock() {
   const [time, setTime] = useState('');
   useEffect(() => {
     const tick = () => {
       const n = new Date();
-      setTime([n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':'));
+      setTime([n.getHours(), n.getMinutes(), n.getSeconds()].map(v => String(v).padStart(2, '0')).join(':'));
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -96,25 +97,25 @@ function useClock() {
 function HistoryChart({ data }) {
   const ref = useRef(null);
   const chartRef = useRef(null);
+
   useEffect(() => {
-    if (!ref.current || !data.length) return;
+    if (!ref.current || !data.length || typeof Chart === 'undefined') return;
     if (chartRef.current) chartRef.current.destroy();
-    const labels = data.slice(-20).map((_,i) => i % 5 === 0 ? i+'m' : '');
-    const vehicles = data.slice(-20).map(d => d.vehicles);
-    const pollution = data.slice(-20).map(d => d.pollution);
-    const noise = data.slice(-20).map(d => d.noise);
+
+    const recent = data.slice(-20);
     chartRef.current = new Chart(ref.current, {
       type: 'line',
       data: {
-        labels,
+        labels: recent.map((_, i) => (i % 5 === 0 ? `${i}m` : '')),
         datasets: [
-          { label: 'Véhicules', data: vehicles, borderColor: '#1D9E75', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
-          { label: 'Pollution', data: pollution, borderColor: '#EF9F27', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
-          { label: 'Bruit',     data: noise,     borderColor: '#E24B4A', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
+          { label: 'Vehicules', data: recent.map(d => d.vehicles), borderColor: '#1D9E75', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
+          { label: 'Pollution', data: recent.map(d => d.pollution), borderColor: '#EF9F27', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
+          { label: 'Bruit', data: recent.map(d => d.noise), borderColor: '#E24B4A', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
         ]
       },
       options: {
-        responsive: true, maintainAspectRatio: false,
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
           x: { ticks: { color: '#5a5e72', font: { size: 10 } }, grid: { display: false } },
@@ -123,8 +124,10 @@ function HistoryChart({ data }) {
         animation: { duration: 400 }
       }
     });
+
     return () => chartRef.current?.destroy();
   }, [data]);
+
   return <canvas ref={ref} />;
 }
 
@@ -137,16 +140,26 @@ function App() {
 
   const fetchData = async () => {
     try {
-      const [tr, hi] = await Promise.all([
-        fetch(`${API}/api/traffic`).then(r => r.json()),
-        fetch(`${API}/api/history`).then(r => r.json()),
+      const [trafficResponse, historyResponse] = await Promise.all([
+        fetch(`${API}/api/traffic`),
+        fetch(`${API}/api/history`),
       ]);
-      setTrafficData(tr);
-      setHistory(hi);
+
+      if (!trafficResponse.ok || !historyResponse.ok) {
+        throw new Error('API request failed');
+      }
+
+      const [trafficJson, historyJson] = await Promise.all([
+        trafficResponse.json(),
+        historyResponse.json(),
+      ]);
+
+      setTrafficData(trafficJson);
+      setHistory(Array.isArray(historyJson) ? historyJson : []);
       setConnected(true);
       setError(null);
     } catch (e) {
-      setError('Impossible de contacter le serveur Java. Lancez : java -jar ... server');
+      setError('Impossible de contacter le serveur Java. Lancez: java -jar target\\traffic-application.jar server');
       setConnected(false);
     }
   };
@@ -160,32 +173,37 @@ function App() {
   const zones = trafficData?.zones || [];
   const alerts = trafficData?.alerts || [];
 
-  function getBarClass(v) { return v > 100 ? 'bar-crit' : v > 60 ? 'bar-warn' : 'bar-ok'; }
-  function getFeu(d) {
-    if (d.accident) return { cls: 'feu-rouge', status: 'Déviation' };
-    if (d.vehicles > 100) return { cls: 'feu-vert', status: 'Allongé +30s' };
-    if (d.vehicles > 60) return { cls: 'feu-orange', status: 'Normal' };
+  function getBarClass(value) {
+    return value > 100 ? 'bar-crit' : value > 60 ? 'bar-warn' : 'bar-ok';
+  }
+
+  function getFeu(data) {
+    if (data.accident) return { cls: 'feu-rouge', status: 'Deviation' };
+    if (data.vehicles > 100) return { cls: 'feu-vert', status: 'Allonge +30s' };
+    if (data.vehicles > 60) return { cls: 'feu-orange', status: 'Normal' };
     return { cls: 'feu-vert', status: 'Optimal' };
   }
-  function getAlertClass(a) {
-    if (a.includes('ACCIDENT') || a.includes('CONGESTION')) return 'alert-item alert-crit';
-    if (a.includes('POLLUTION') || a.includes('BRUIT')) return 'alert-item alert-warn';
+
+  function getAlertClass(alert) {
+    if (alert.includes('ACCIDENT') || alert.includes('CONGESTION')) return 'alert-item alert-crit';
+    if (alert.includes('POLLUTION') || alert.includes('BRUIT')) return 'alert-item alert-warn';
     return 'alert-item alert-ok';
   }
-  const noiseClass = (trafficData?.maxNoise||0) > 85 ? 'v-red' : (trafficData?.maxNoise||0) > 70 ? 'v-amber' : 'v-green';
+
+  const noiseClass = (trafficData?.maxNoise || 0) > 85 ? 'v-red' : (trafficData?.maxNoise || 0) > 70 ? 'v-amber' : 'v-green';
 
   return (
     <div className="app">
       <div className="topbar">
         <div>
-          <div className="title">Trafic <span>Urbain</span> — Dashboard</div>
+          <div className="title">Trafic <span>Urbain</span> - Dashboard</div>
           <div className="api-url">{API}/api/traffic</div>
         </div>
-        <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <span className="clock">{clock}</span>
           {connected
             ? <div className="badge-live"><div className="pulse" />EN DIRECT</div>
-            : <div className="badge-live" style={{color:'#EF9F27',background:'rgba(239,159,39,0.1)'}}>DÉCONNECTÉ</div>
+            : <div className="badge-live" style={{ color: '#EF9F27', background: 'rgba(239,159,39,0.1)' }}>DECONNECTE</div>
           }
         </div>
       </div>
@@ -194,65 +212,65 @@ function App() {
         <div className="error-banner">
           <span>!</span>
           <div>
-            <div style={{fontWeight:500,marginBottom:4}}>Serveur Java non disponible</div>
-            <div style={{fontSize:11,opacity:0.8}}>{error}</div>
-            <div style={{fontFamily:'DM Mono',fontSize:11,marginTop:4,opacity:0.6}}>
-              Terminal : java -jar target\traffic-application-full.jar server
-            </div>
+            <div style={{ fontWeight: 500, marginBottom: 4 }}>Serveur Java non disponible</div>
+            <div style={{ fontSize: 11, opacity: 0.8 }}>{error}</div>
           </div>
         </div>
       )}
 
       <div className="metrics-grid">
         <div className="metric-card">
-          <div className="metric-label">Véhicules actifs</div>
-          <div className={`metric-value v-white`}>{trafficData?.totalVehicles ?? '—'}</div>
+          <div className="metric-label">Vehicules actifs</div>
+          <div className="metric-value v-white">{trafficData?.totalVehicles ?? '-'}</div>
           <div className="metric-sub">sur toutes les zones</div>
         </div>
         <div className="metric-card">
           <div className="metric-label">Zones en alerte</div>
-          <div className={`metric-value v-red`}>{trafficData?.alertCount ?? '—'}</div>
+          <div className="metric-value v-red">{trafficData?.alertCount ?? '-'}</div>
           <div className="metric-sub">congestion / accident</div>
         </div>
         <div className="metric-card">
           <div className="metric-label">Pollution max</div>
-          <div className={`metric-value v-amber`}>{trafficData?.maxPollution ?? '—'}</div>
-          <div className="metric-sub">µg/m³ — valeur max</div>
+          <div className="metric-value v-amber">{trafficData?.maxPollution ?? '-'}</div>
+          <div className="metric-sub">ug/m3 - valeur max</div>
         </div>
         <div className="metric-card">
+          <div className={`metric-value ${noiseClass}`}>{trafficData?.maxNoise ?? '-'}</div>
           <div className="metric-label">Bruit max</div>
-          <div className={`metric-value ${noiseClass}`}>{trafficData?.maxNoise ?? '—'}</div>
-          <div className="metric-sub">dB — valeur max</div>
+          <div className="metric-sub">dB - valeur max</div>
         </div>
       </div>
 
       <div className="main-grid">
         <div className="card">
-          <div className="card-title">Flux véhicules par zone (veh/min)</div>
+          <div className="card-title">Flux vehicules par zone (veh/min)</div>
           {zones.length === 0
-            ? <div style={{color:'#5a5e72',fontSize:13}}>En attente de données...</div>
-            : zones.map(d => (
-              <div className="zone-row" key={d.zone}>
-                <div className="zone-name">{d.zone}</div>
+            ? <div style={{ color: '#5a5e72', fontSize: 13 }}>En attente de donnees...</div>
+            : zones.map(zone => (
+              <div className="zone-row" key={zone.zone}>
+                <div className="zone-name">{zone.zone}</div>
                 <div className="bar-wrap">
-                  <div className={`bar ${getBarClass(d.vehicles)}`} style={{width:`${Math.min(100,(d.vehicles/150)*100)}%`}} />
+                  <div className={`bar ${getBarClass(zone.vehicles)}`} style={{ width: `${Math.min(100, (zone.vehicles / 150) * 100)}%` }} />
                 </div>
-                <div className="zone-val">{d.vehicles} v/m</div>
+                <div className="zone-val">{zone.vehicles} v/m</div>
               </div>
             ))
           }
         </div>
         <div className="card">
-          <div className="card-title">Alertes en temps réel</div>
+          <div className="card-title">Alertes en temps reel</div>
           <div className="alerts-list">
             {alerts.length === 0
               ? <div className="alert-item alert-ok"><span className="alert-title">Situation normale</span>Aucune alerte active</div>
-              : alerts.slice(0,6).map((a,i) => (
-                <div key={i} className={getAlertClass(a)}>
-                  <span className="alert-title">{a.split('→')[0]}</span>
-                  {a.includes('→') && <span style={{opacity:0.8}}>{a.split('→')[1]}</span>}
-                </div>
-              ))
+              : alerts.slice(0, 6).map((alert, index) => {
+                  const parts = alert.split('->');
+                  return (
+                    <div key={index} className={getAlertClass(alert)}>
+                      <span className="alert-title">{parts[0]}</span>
+                      {parts[1] && <span style={{ opacity: 0.8 }}>{parts[1]}</span>}
+                    </div>
+                  );
+                })
             }
           </div>
         </div>
@@ -260,41 +278,41 @@ function App() {
 
       <div className="bottom-grid">
         <div className="card">
-          <div className="card-title">État des feux de signalisation</div>
+          <div className="card-title">Etat des feux de signalisation</div>
           <div className="feux-grid">
             {zones.length === 0
-              ? <div style={{color:'#5a5e72',fontSize:12,gridColumn:'1/-1'}}>En attente...</div>
-              : zones.map(d => {
-                const f = getFeu(d);
-                return (
-                  <div className="feu-card" key={d.zone}>
-                    <div className="feu-zone">{d.zone}</div>
-                    <div className={`feu-light ${f.cls}`} />
-                    <div className="feu-status">{f.status}</div>
-                  </div>
-                );
-              })
+              ? <div style={{ color: '#5a5e72', fontSize: 12, gridColumn: '1/-1' }}>En attente...</div>
+              : zones.map(zone => {
+                  const feu = getFeu(zone);
+                  return (
+                    <div className="feu-card" key={zone.zone}>
+                      <div className="feu-zone">{zone.zone}</div>
+                      <div className={`feu-light ${feu.cls}`} />
+                      <div className="feu-status">{feu.status}</div>
+                    </div>
+                  );
+                })
             }
           </div>
-          <div style={{marginTop:14}}>
-            {zones.map(d => (
-              <div className="stat-row" key={d.zone}>
-                <span className="stat-label">{d.zone}</span>
-                <span className={`stat-val ${d.pollution > 80 ? 'v-amber' : 'v-green'}`}>{d.pollution} µg/m³</span>
-                <span className={`stat-val ${d.noise > 85 ? 'v-red' : 'v-white'}`}>{d.noise} dB</span>
-                <span className={`stat-val ${d.accident ? 'v-red' : 'v-green'}`}>{d.accident ? 'ACCIDENT' : 'OK'}</span>
+          <div style={{ marginTop: 14 }}>
+            {zones.map(zone => (
+              <div className="stat-row" key={zone.zone}>
+                <span className="stat-label">{zone.zone}</span>
+                <span className={`stat-val ${zone.pollution > 80 ? 'v-amber' : 'v-green'}`}>{zone.pollution} ug/m3</span>
+                <span className={`stat-val ${zone.noise > 85 ? 'v-red' : 'v-white'}`}>{zone.noise} dB</span>
+                <span className={`stat-val ${zone.accident ? 'v-red' : 'v-green'}`}>{zone.accident ? 'ACCIDENT' : 'OK'}</span>
               </div>
             ))}
           </div>
         </div>
         <div className="card">
           <div className="card-title">Historique trafic (derniers messages)</div>
-          <div style={{display:'flex',gap:16,marginBottom:10,fontSize:11,color:'#5a5e72'}}>
-            <span><span style={{display:'inline-block',width:10,height:10,borderRadius:2,background:'#1D9E75',marginRight:4}} />Véhicules</span>
-            <span><span style={{display:'inline-block',width:10,height:10,borderRadius:2,background:'#EF9F27',marginRight:4}} />Pollution</span>
-            <span><span style={{display:'inline-block',width:10,height:10,borderRadius:2,background:'#E24B4A',marginRight:4}} />Bruit</span>
+          <div style={{ display: 'flex', gap: 16, marginBottom: 10, fontSize: 11, color: '#5a5e72' }}>
+            <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#1D9E75', marginRight: 4 }} />Vehicules</span>
+            <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#EF9F27', marginRight: 4 }} />Pollution</span>
+            <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#E24B4A', marginRight: 4 }} />Bruit</span>
           </div>
-          <div style={{position:'relative',height:180}}>
+          <div style={{ position: 'relative', height: 180 }}>
             <HistoryChart data={history} />
           </div>
         </div>
